@@ -1,0 +1,17 @@
+local RunService = game:GetService("RunService")
+
+print("🛑 [3] Mematikan Render 3D Layar...")
+
+-- Turunkan kualitas grafis bawaan ke tingkat paling dasar
+pcall(function()
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+end)
+
+-- Cegat mesin game agar berhenti memperbarui grafik 3D setiap frame
+RunService:BindToRenderStep("Hentikan3D", Enum.RenderPriority.Camera.Value, function()
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    end)
+end)
+
+-- Catatan: Jika layar terasa beku tapi bot tetap jalan, berarti ini berhasil!
