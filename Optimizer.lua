@@ -1,7 +1,7 @@
 -- =========================================================
--- 🚀 SCRIPT MASTER OPTIMIZER V13 (HYBRID RADIUS)
--- Fokus: Hapus objek > 50m, Transparan untuk objek vital
--- Solusi agar Bot Fishit tetap bisa memancing (Safe Mode)
+-- 🚀 SCRIPT MASTER OPTIMIZER V14 (ZERO-DELETION)
+-- Fokus: 100% Aman untuk Bot Fishit
+-- Tanpa Destroy(), Hanya Manipulasi Visual
 -- =========================================================
 
 local Workspace = game:GetService("Workspace")
@@ -24,7 +24,7 @@ pcall(function()
     bg.BackgroundColor3 = Color3.new(0,0,0); bg.BackgroundTransparency = 0.8
     local lbl = Instance.new("TextLabel", bg)
     lbl.Size = UDim2.new(1,0,1,0); lbl.BackgroundTransparency = 1; lbl.TextColor3 = Color3.new(0, 1, 0)
-    lbl.Font = Enum.Font.Code; lbl.TextSize = 9; lbl.Text = "V13 Hybrid..."
+    lbl.Font = Enum.Font.Code; lbl.TextSize = 9; lbl.Text = "V14 Safe Engine..."
 
     task.spawn(function()
         while task.wait(5) do
@@ -36,84 +36,74 @@ pcall(function()
 end)
 
 -- ==========================================
--- 🛠️ LOGIKA RADIUS & WHITELIST (SAFE CULLING)
+-- 🛠️ LOGIKA OPTIMASI GAIB (BOT-SAFE)
 -- ==========================================
-local function isCritical(obj)
-    local name = obj.Name:lower()
-    -- Daftar objek yang TIDAK BOLEH dihancurkan agar bot tidak error
-    if name:find("water") or name:find("sea") or name:find("ocean") or name:find("liquid") then return true end
-    if obj:IsA("Terrain") then return true end
-    return false
-end
-
-local function hybridOptimize(v, rootPos)
+local function safeOptimize(v)
     pcall(function()
+        -- JANGAN ganggu karakter kita atau objek yang sangat penting
+        if v:IsDescendantOf(LocalPlayer.Character) then return end
+        
         if v:IsA("BasePart") then
-            -- JANGAN ganggu karakter kita sendiri
-            if v:IsDescendantOf(LocalPlayer.Character) then return end
+            -- JANGAN di-Destroy, cukup buat transparan total agar GPU tidak kerja
+            v.Transparency = 1
+            v.Material = Enum.Material.SmoothPlastic
+            v.CastShadow = false
+            v.Reflectance = 0
             
-            local dist = (v.Position - rootPos).Magnitude
-            
-            if dist > 50 then
-                if isCritical(v) then
-                    -- Jika itu AIR tapi jauh, JANGAN hapus, cukup buat GAIB
-                    v.Transparency = 1
-                else
-                    -- Jika benda biasa (pohon/gedung) > 50m, HAPUS TOTAL
-                    v:Destroy()
-                    return
-                end
-            else
-                -- Jika di dalam radius 50m, buat jadi burik (transparan 1)
-                v.Transparency = 1
-                v.Material = Enum.Material.SmoothPlastic
-                v.CastShadow = false
-                if v:IsA("MeshPart") then v.TextureID = "" end
-            end
-            
-            -- Pastikan Fisika tetap aktif agar kail pancing bisa mendarat
-            v.CanTouch = true
+            -- Biarkan CanTouch & CanQuery TETAP TRUE agar bot tidak error
+            v.CanTouch = true 
             v.CanQuery = true
-        elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("ParticleEmitter") then
-            v:Destroy()
+            
+            if v:IsA("MeshPart") then
+                v.TextureID = ""
+                v.RenderFidelity = Enum.RenderFidelity.Performance
+            end
+        elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") then
+            -- Efek visual kecil aman untuk dihapus (Opsional: ubah ke Transparency = 1 jika ragu)
+            v.Enabled = false 
+        elseif v:IsA("Sound") then
+            v.Volume = 0
+            v:Stop()
         end
     end)
 end
 
--- Eksekusi Utama
+-- Eksekusi Utama (Penyisiran bertahap agar tidak lag saat eksekusi)
 task.spawn(function()
-    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local root = char:WaitForChild("HumanoidRootPart")
-    
-    -- Sapu bersih awal
-    for _, v in pairs(Workspace:GetDescendants()) do
-        hybridOptimize(v, root.Position)
+    local descendants = Workspace:GetDescendants()
+    for i = 1, #descendants do
+        safeOptimize(descendants[i])
+        if i % 100 == 0 then task.wait() end -- Jeda agar Redfinger tidak freeze
     end
-    
-    -- Radar untuk objek baru
-    Workspace.DescendantAdded:Connect(function(v)
-        hybridOptimize(v, root.Position)
-    end)
 end)
 
+-- Pantau objek baru (seperti ikan yang muncul atau efek cuaca)
+Workspace.DescendantAdded:Connect(safeOptimize)
+
 -- ==========================================
--- 🔒 SISTEM LOCK (BOT SAFE)
+-- 🔒 SETTING MESIN (PRIORITAS STABILITAS)
 -- ==========================================
 pcall(function()
     if setfpscap then setfpscap(10) end
-    RunService:Set3dRenderingEnabled(true) -- Wajib TRUE untuk bot Fishit
+    
+    -- Rendering harus menyala agar bot bisa mendeteksi kail
+    RunService:Set3dRenderingEnabled(true)
+    
     Lighting.GlobalShadows = false
     Lighting.Brightness = 0
+    Lighting.ClockTime = 0
     sethiddenproperty(Lighting, "Technology", 2)
+    
+    -- Turunkan kualitas grafik ke paling rendah
     settings().Rendering.QualityLevel = 1
 end)
 
--- Garbage Collector
+-- Pengumpul sampah memori berkala
 task.spawn(function()
-    while task.wait(20) do
+    while task.wait(30) do
         collectgarbage("collect")
         game:GetService("LogService"):ClearOutput()
     end
 end)
 
-print("💀 V13 HYBRID VOID ACTIVE: Radius 50m + Water Protected.")
+print("✅ V14 Safe Engine Active: Zero Deletion Mode.")
