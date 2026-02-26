@@ -1,6 +1,7 @@
 -- =========================================================
--- 🚀 SCRIPT MASTER OPTIMIZER (ALL-IN-ONE + UI NOTIFICATION)
--- Eksekusi berurutan: 1 per 1 dengan laporan di layar
+-- 🚀 SCRIPT MASTER OPTIMIZER + ULTRA BURIK (ALL-IN-ONE)
+-- Versi Final: UI Notification, Ghost Mode, Audio Nuke,
+-- Skybox Nuke, 10 FPS Capper, No Camera Alteration.
 -- =========================================================
 
 local Workspace = game:GetService("Workspace")
@@ -11,46 +12,28 @@ local StarterGui = game:GetService("StarterGui")
 local LocalPlayer = Players.LocalPlayer
 local Terrain = Workspace.Terrain
 
--- 📢 Fungsi pembuat notifikasi UI di pojok kanan bawah layar
+-- 📢 Fungsi Notifikasi UI untuk memantau progres di layar
 local function notify(title, text)
     pcall(function()
         StarterGui:SetCore("SendNotification", {
             Title = title,
             Text = text,
-            Duration = 3 -- Notifikasi akan muncul selama 3 detik
+            Duration = 3
         })
     end)
 end
 
-notify("🚀 Optimizer Dimulai", "Menyiapkan eksekusi tahap 1...")
-task.wait(2) -- Jeda 2 detik sebelum mulai
+notify("🚀 Optimizer Dimulai", "Menyiapkan optimasi tingkat ekstrem...")
+task.wait(2)
 
 -- ==========================================
--- TAHAP 1: EXTREME FPS BOOST
+-- TAHAP 1: EXTREME FPS & ULTIMATE PERFORMANCE
 -- ==========================================
 pcall(function()
     Lighting.GlobalShadows = false
     Lighting.FogEnd = 9e9
     Lighting.ShadowSoftness = 0
 
-    for _, v in pairs(Lighting:GetDescendants()) do
-        if v:IsA("PostEffect") or v:IsA("Atmosphere") then v:Destroy() end
-    end
-
-    for _, v in pairs(Workspace:GetDescendants()) do
-        if v:IsA("BasePart") and not v:IsA("Terrain") then
-            v.Material = Enum.Material.SmoothPlastic
-            v.Reflectance = 0
-        end
-    end
-end)
-notify("✅ Tahap 1 Selesai", "Extreme FPS Boost (Plastik Polos) aktif!")
-task.wait(2)
-
--- ==========================================
--- TAHAP 2: ULTIMATE PERFORMANCE
--- ==========================================
-pcall(function()
     Terrain.WaterWaveSize = 0
     Terrain.WaterWaveSpeed = 0
     Terrain.WaterReflectance = 0
@@ -58,14 +41,48 @@ pcall(function()
     Terrain.Decoration = false
 
     for _, v in pairs(Workspace:GetDescendants()) do
-        if v:IsA("ParticleEmitter") or v:IsA("Trail") then
+        if v:IsA("BasePart") and not v:IsA("Terrain") then
+            v.Material = Enum.Material.SmoothPlastic
+            v.Reflectance = 0
+            v.CastShadow = false -- Mematikan bayangan individual
+        elseif v:IsA("PostEffect") or v:IsA("Atmosphere") or v:IsA("Sky") then 
+            v:Destroy() 
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
             v.Lifetime = NumberRange.new(0)
         elseif v:IsA("Decal") or v:IsA("Texture") then
             v:Destroy()
         end
     end
 end)
-notify("✅ Tahap 2 Selesai", "Ultimate Performance (Hapus Tekstur & Air) aktif!")
+notify("✅ Tahap 1 Selesai", "Dunia plastik polos dan tanpa tekstur!")
+task.wait(2)
+
+-- ==========================================
+-- TAHAP 2: ULTRA BURIK (LANGIT, SUARA, & FPS)
+-- ==========================================
+pcall(function()
+    -- 1. Penghancur Langit & Cahaya
+    Lighting.Ambient = Color3.new(0, 0, 0)
+    Lighting.OutdoorAmbient = Color3.new(0, 0, 0)
+    Lighting.Brightness = 0
+    Lighting.ClockTime = 0 
+    
+    -- 2. Pemusnah Suara
+    UserSettings().GameSettings.MasterVolume = 0
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("Sound") then
+            v:Stop()
+            v.SoundId = ""
+            v.Volume = 0
+        end
+    end
+    
+    -- 3. Pembatas Kecepatan (10 FPS)
+    if setfpscap then
+        setfpscap(10)
+    end
+end)
+notify("📉 Tahap 2 Selesai", "Langit gelap, game bisu, dan dilock 10 FPS!")
 task.wait(2)
 
 -- ==========================================
@@ -84,8 +101,6 @@ pcall(function()
                     v.CanCollide = false
                     v.CastShadow = false
                 end)
-            elseif v:IsA("Decal") or v:IsA("Texture") then
-                v:Destroy()
             end
         end
     end
@@ -114,8 +129,8 @@ pcall(function()
         end)
     end)
 end)
-notify("✅ Tahap 4 Selesai", "Render 3D ditekan. RAM berhasil dihemat!")
+notify("✅ Tahap 4 Selesai", "Render 3D ditekan. RAM dihemat maksimal!")
 
 -- Kesimpulan akhir
 task.wait(2)
-notify("🎉 OPTIMASI SELESAI!", "Redfinger Anda sekarang sangat ringan untuk AFK.")
+notify("🎉 OPTIMASI TOTAL SELESAI!", "Redfinger Anda sekarang dalam mode Ultra Hemat.")
