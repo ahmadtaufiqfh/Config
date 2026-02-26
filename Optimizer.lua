@@ -1,34 +1,29 @@
 -- =========================================================
--- 🚀 SCRIPT MASTER OPTIMIZER V7 (BAREBONE EDITION)
--- Target: RAM 500MB - 700MB (Khusus 32-bit)
--- Fitur: Texture Stripping, Log Clear, 10s UI Update
+-- 🚀 SCRIPT MASTER OPTIMIZER V9 (ATOMIC VOID)
+-- Fokus: Penghapusan total objek di luar radius 30m
 -- =========================================================
 
 local Workspace = game:GetService("Workspace")
-local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
 local Stats = game:GetService("Stats")
 local CoreGui = game:GetService("CoreGui")
-local LogService = game:GetService("LogService")
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- ==========================================
--- 📊 UI MONITORING (UPDATE SETIAP 10 DETIK)
--- ==========================================
+-- 1. LAYAR HITAM TOTAL (PENGHEMAT VRAM)
 pcall(function()
     if CoreGui:FindFirstChild("MiniStatsUI") then CoreGui.MiniStatsUI:Destroy() end
     local ui = Instance.new("ScreenGui", CoreGui)
     ui.Name = "MiniStatsUI"
     local bg = Instance.new("Frame", ui)
-    bg.Size = UDim2.new(0, 120, 0, 15); bg.Position = UDim2.new(0.5, -60, 0, 0)
-    bg.BackgroundColor3 = Color3.new(0,0,0); bg.BackgroundTransparency = 0.8; bg.BorderSizePixel = 0
+    bg.Size = UDim2.new(1, 0, 1, 0); bg.BackgroundColor3 = Color3.new(0,0,0); bg.BorderSizePixel = 0
     local lbl = Instance.new("TextLabel", bg)
-    lbl.Size = UDim2.new(1,0,1,0); lbl.BackgroundTransparency = 1; lbl.TextColor3 = Color3.new(0,1,0)
-    lbl.Font = Enum.Font.Code; lbl.TextSize = 9; lbl.Text = "Syncing..."
+    lbl.Size = UDim2.new(0, 120, 0, 20); lbl.Position = UDim2.new(0.5, -60, 0, 5)
+    lbl.BackgroundTransparency = 1; lbl.TextColor3 = Color3.new(0, 1, 0)
+    lbl.Font = Enum.Font.Code; lbl.TextSize = 10; lbl.Text = "Atomic Cleaning..."
 
     task.spawn(function()
-        while task.wait(10) do -- Update sangat lambat agar RAM tidak bocor
+        while task.wait(10) do
             local ram = math.floor(Stats:GetTotalMemoryUsageMb())
             local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
             lbl.Text = ram .. "MB | " .. ping .. "ms | 10"
@@ -36,61 +31,50 @@ pcall(function()
     end)
 end)
 
--- ==========================================
--- 🛠️ STRIPPING TEKSTUR & MESH (EXTREME)
--- ==========================================
-local function strip(v)
+-- 2. RADIUS ATOMIK (Hapus Semua Selain Area Pijakan)
+-- Radius diset 30 unit (Sangat Sempit)
+local function atomicClean()
     pcall(function()
-        if v:IsA("BasePart") then
-            v.Material = Enum.Material.SmoothPlastic
-            v.CastShadow = false
-            v.Reflectance = 0
-        elseif v:IsA("MeshPart") then
-            v.TextureID = "" -- Menghapus gambar pada mesh
-            v.MeshId = ""    -- Menjadikan mesh menjadi kotak (Sangat Hemat RAM)
-        elseif v:IsA("SpecialMesh") then
-            v.TextureId = ""
-        elseif v:IsA("Decal") or v:IsA("Texture") then
-            v:Destroy()
-        elseif v:IsA("Sound") or v:IsA("Animation") then
-            v:Destroy()
+        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+
+        for _, v in pairs(Workspace:GetDescendants()) do
+            if v:IsA("BasePart") then
+                -- Jangan hapus karakter sendiri dan jangan hapus Terrain (Air)
+                if not v:IsDescendantOf(char) and not v:IsA("Terrain") then
+                    local dist = (v.Position - root.Position).Magnitude
+                    if dist > 30 then
+                        v:Destroy() -- Hapus total dari RAM
+                    else
+                        -- Objek di dalam radius dijadikan kotak plastik polos
+                        v.Material = Enum.Material.SmoothPlastic
+                        if v:IsA("MeshPart") then v.TextureID = "" end
+                    end
+                end
+            elseif v:IsA("Sound") or v:IsA("ParticleEmitter") or v:IsA("Decal") then
+                v:Destroy()
+            end
         end
     end)
 end
 
--- Sapu awal seluruh map
-for _, v in pairs(game:GetDescendants()) do strip(v) end
+-- Eksekusi penghapusan atomik
+task.spawn(atomicClean)
 
--- Radar untuk objek baru
-game.DescendantAdded:Connect(strip)
+-- 3. KUNCI SISTEM
+pcall(function()
+    if setfpscap then setfpscap(10) end
+    RunService:Set3dRenderingEnabled(false) -- Matikan render 3D
+    game:GetService("Lighting").Brightness = 0
+end)
 
--- ==========================================
--- 🧹 LOG & GARBAGE CLEANER
--- ==========================================
+-- 4. PENGURAS SAMPAH MEMORI (TIAP 15 DETIK)
 task.spawn(function()
-    while task.wait(10) do
-        pcall(function()
-            collectgarbage("collect")
-            LogService:ClearOutput() -- Menghapus sampah pesan di console
-        end)
+    while task.wait(15) do
+        collectgarbage("collect")
+        game:GetService("LogService"):ClearOutput()
     end
 end)
 
--- ==========================================
--- 🔒 PENGUNCI SISTEM (FPS & RENDER)
--- ==========================================
-pcall(function()
-    if setfpscap then setfpscap(10) end
-    Lighting.GlobalShadows = false
-    Lighting.Brightness = 0
-    Lighting.ClockTime = 0
-    sethiddenproperty(Lighting, "Technology", 2) -- Compatibility Mode
-    
-    -- Matikan Render 3D total (Jika didukung)
-    RunService:Set3dRenderingEnabled(false)
-end)
-
--- Sembunyikan UI Roblox
-game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
-
-print("💀 V7 BAREBONE ACTIVE: Memory stripping complete.")
+print("💀 V9 ATOMIC VOID ACTIVE: Radius 30m Lock.")
