@@ -53,7 +53,7 @@ local function optimize(v, rootPos)
             -- JIKA objek di luar radius DAN bukan air/terrain DAN bukan karakter kita
             if v.Position and rootPos then
                 local dist = (v.Position - rootPos).Magnitude
-                if dist > 30 and not isSafe(v) and not v:IsDescendantOf(LocalPlayer.Character) then
+                if dist > 100 and not isSafe(v) and not v:IsDescendantOf(LocalPlayer.Character) then
                     v:Destroy()
                     return
                 end
