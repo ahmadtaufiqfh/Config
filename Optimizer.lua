@@ -1,6 +1,6 @@
 -- =========================================================
--- 🚀 SCRIPT MASTER OPTIMIZER V10 (VISUAL BAREBONE)
--- Target: RAM minimalis, Bentuk Terlihat, Radius 30m
+-- 🚀 SCRIPT MASTER OPTIMIZER V11 (FISHIT-SAFE)
+-- Fokus: Radius 100m + Whitelist Air agar Bot tidak Error
 -- =========================================================
 
 local Workspace = game:GetService("Workspace")
@@ -23,7 +23,7 @@ pcall(function()
     bg.BackgroundColor3 = Color3.new(0,0,0); bg.BackgroundTransparency = 0.8; bg.BorderSizePixel = 0
     local lbl = Instance.new("TextLabel", bg)
     lbl.Size = UDim2.new(1,0,1,0); lbl.BackgroundTransparency = 1; lbl.TextColor3 = Color3.new(0,1,0)
-    lbl.Font = Enum.Font.Code; lbl.TextSize = 9; lbl.Text = "V10 Loading..."
+    lbl.Font = Enum.Font.Code; lbl.TextSize = 9; lbl.Text = "V11 Safe Mode..."
 
     task.spawn(function()
         while task.wait(10) do
@@ -35,83 +35,75 @@ pcall(function()
 end)
 
 -- ==========================================
--- 🛠️ PENGHANCUR GRAFIK & RADIUS (ULTRA BURIK)
+-- 🛠️ RADIUS DENGAN WHITELIST AIR
 -- ==========================================
-local function optimizeObject(v, rootPos)
+local function isSafe(obj)
+    local name = obj.Name:lower()
+    -- Daftar kata kunci yang TIDAK BOLEH dihapus agar bot pancing jalan
+    if name:find("water") or name:find("sea") or name:find("ocean") or name:find("liquid") or name:find("pool") then
+        return true
+    end
+    if obj:IsA("Terrain") then return true end
+    return false
+end
+
+local function optimize(v, rootPos)
     pcall(function()
         if v:IsA("BasePart") then
-            -- Cek Jarak (Radius 30)
+            -- JIKA objek di luar radius DAN bukan air/terrain DAN bukan karakter kita
             if v.Position and rootPos then
                 local dist = (v.Position - rootPos).Magnitude
-                if dist > 100 and not v:IsDescendantOf(LocalPlayer.Character) and v.Name ~= "Terrain" then
-                    v:Destroy() -- Hapus total jika di luar radius
+                if dist > 30 and not isSafe(v) and not v:IsDescendantOf(LocalPlayer.Character) then
+                    v:Destroy()
                     return
                 end
             end
             
-            -- Jika di dalam radius, buat jadi "Burik"
+            -- Optimasi visual objek yang tersisa
             v.Material = Enum.Material.SmoothPlastic
-            v.Reflectance = 0
             v.CastShadow = false
-            v.CanTouch = false
-            v.CanQuery = false
-            
             if v:IsA("MeshPart") then
                 v.TextureID = ""
                 v.RenderFidelity = Enum.RenderFidelity.Performance
-                v.InitialSize = Vector3.new(1,1,1) -- Mengecilkan beban kalkulasi mesh
             end
-        elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") then
-            v:Destroy()
-        elseif v:IsA("Sound") or v:IsA("Animation") then
+        elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("ParticleEmitter") then
             v:Destroy()
         end
     end)
 end
 
--- Eksekusi Utama
+-- Menjalankan sistem pembersihan
 task.spawn(function()
     local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     local root = char:WaitForChild("HumanoidRootPart")
-    local pos = root.Position
-
-    -- Sapu bersih awal
+    
+    -- Pembersihan awal
     for _, v in pairs(Workspace:GetDescendants()) do
-        optimizeObject(v, pos)
+        optimize(v, root.Position)
     end
     
-    -- Radar untuk objek baru yang muncul
+    -- Radar untuk objek baru
     Workspace.DescendantAdded:Connect(function(v)
-        optimizeObject(v, pos)
+        optimize(v, root.Position)
     end)
 end)
 
 -- ==========================================
--- 🔒 LIGHTING & RENDER (BAREBONE VISUAL)
+-- 🔒 SISTEM PENDUKUNG
 -- ==========================================
 pcall(function()
     if setfpscap then setfpscap(10) end
-    
-    -- Pastikan Rendering 3D AKTIF (Agar tidak hitam/putih)
-    RunService:Set3dRenderingEnabled(true) 
-    
+    RunService:Set3dRenderingEnabled(true) -- HARUS TRUE agar bot bisa mendeteksi objek pancing
     Lighting.GlobalShadows = false
     Lighting.Brightness = 0
-    Lighting.ClockTime = 0
-    sethiddenproperty(Lighting, "Technology", 2) -- Compatibility Mode (Paling ringan)
-    
+    sethiddenproperty(Lighting, "Technology", 2)
     settings().Rendering.QualityLevel = 1
 end)
 
--- Sembunyikan UI Roblox agar tidak makan RAM teks
-game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
-
--- Garbage Collector
+-- Garbage Collector & Log Clear
 task.spawn(function()
     while task.wait(20) do
         collectgarbage("collect")
         game:GetService("LogService"):ClearOutput()
     end
 end)
-
-print("💀 V10 VISUAL BAREBONE ACTIVE: Shapes Visible, Radius 30m.")
