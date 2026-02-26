@@ -43,7 +43,7 @@ local function optimizeObject(v, rootPos)
             -- Cek Jarak (Radius 30)
             if v.Position and rootPos then
                 local dist = (v.Position - rootPos).Magnitude
-                if dist > 30 and not v:IsDescendantOf(LocalPlayer.Character) and v.Name ~= "Terrain" then
+                if dist > 70 and not v:IsDescendantOf(LocalPlayer.Character) and v.Name ~= "Terrain" then
                     v:Destroy() -- Hapus total jika di luar radius
                     return
                 end
