@@ -1,0 +1,33 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+print("👻 [4] Mengaktifkan Mode Hantu untuk Pemain Lain...")
+
+local function hideCharacter(character)
+    if not character then return end
+    task.wait(0.5) -- Tunggu wujudnya termuat sempurna
+    
+    for _, v in pairs(character:GetDescendants()) do
+        -- Hancurkan baju dan aksesoris
+        if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") or v:IsA("CharacterMesh") or v:IsA("ShirtGraphic") then
+            v:Destroy()
+        -- Buat tubuh jadi udara kosong (tembus pandang)
+        elseif v:IsA("BasePart") then
+            pcall(function()
+                v.Transparency = 1
+                v.CanCollide = false
+                v.CastShadow = false
+            end)
+        end
+    end
+end
+
+local function handlePlayer(player)
+    if player ~= LocalPlayer then
+        if player.Character then hideCharacter(player.Character) end
+        player.CharacterAdded:Connect(function(newChar) hideCharacter(newChar) end)
+    end
+end
+
+for _, player in pairs(Players:GetPlayers()) do handlePlayer(player) end
+Players.PlayerAdded:Connect(handlePlayer)
