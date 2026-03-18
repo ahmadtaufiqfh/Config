@@ -144,17 +144,65 @@ local function applyOpt()
 	end
 end
 
--- [ PATCHED ] BRUTE MODE LOGIC
 local function executeBrute()
+	local flatColor = Color3.fromRGB(150, 150, 150) -- Warna abu-abu solid
+	
 	for _, obj in pairs(Workspace:GetDescendants()) do 
 		pcall(function()
-			if obj:IsA("BasePart") and not obj:IsA("Terrain") then 
-				obj.Material = Enum.Material.SmoothPlastic; obj.CastShadow = false; 
-				if obj:IsA("MeshPart") then obj.TextureID = "" end 
+			-- 1. Netralkan Part & Warnanya
+			if obj:IsA("BasePart") then 
+				if not obj:IsA("Terrain") then
+					obj.Material = Enum.Material.SmoothPlastic
+					obj.CastShadow = false
+					obj.Color = flatColor
+					if obj:IsA("MeshPart") then 
+						obj.TextureID = "" 
+					end 
+				end
+			-- 2. Hancurkan Textures, Decals, dan Mesh Kompleks
+			elseif obj:IsA("Decal") or obj:IsA("Texture") or obj:IsA("SpecialMesh") then
+				obj:Destroy()
+			-- 3. Hancurkan Efek Visual (Air Terjun, Partikel, Garis Beam)
+			elseif obj:IsA("ParticleEmitter") or obj:IsA("Beam") or obj:IsA("Trail") or obj:IsA("Sparkles") or obj:IsA("Fire") or obj:IsA("Smoke") then
+				obj:Destroy()
+			-- 4. Hancurkan Sumber Cahaya (Lampu)
+			elseif obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+				obj:Destroy()
+			-- 5. Hancurkan Pakaian & Aksesoris Kosmetik
+			elseif obj:IsA("ShirtGraphic") or obj:IsA("Shirt") or obj:IsA("Pants") then
+				obj:Destroy()
 			end
 		end)
 	end
+	
+	-- 6. Ratakan Lingkungan Global & Hancurkan Efek Kamera
+	pcall(function()
+		Lighting.FogEnd = 100000
+		Lighting.GlobalShadows = false
+		Lighting.Brightness = 0 -- Matikan kecerahan bawaan
+		Lighting.Ambient = Color3.fromRGB(120, 120, 120)
+		Lighting.OutdoorAmbient = Color3.fromRGB(120, 120, 120)
+		
+		-- Hapus semua efek Post-Processing dan Langit
+		for _, effect in ipairs(Lighting:GetChildren()) do
+			if effect:IsA("PostEffect") or effect:IsA("Sky") or effect:IsA("Atmosphere") or effect:IsA("Clouds") or effect:IsA("SunRaysEffect") or effect:IsA("BloomEffect") or effect:IsA("BlurEffect") or effect:IsA("ColorCorrectionEffect") or effect:IsA("DepthOfFieldEffect") then
+				effect:Destroy()
+			end
+		end
+	end)
+	
+	-- 7. Matikan Animasi dan Refleksi Air (Terrain)
+	pcall(function()
+		local Terrain = Workspace.Terrain
+		if Terrain then
+			Terrain.WaterWaveSize = 0
+			Terrain.WaterReflectance = 0
+			Terrain.WaterTransparency = 0 -- Membuat air menjadi warna solid tanpa tembus pandang
+			Terrain.Decoration = false -- Menghilangkan rumput 3D
+		end
+	end)
 end
+
 
 -- EXACT HIDE USN LOGIC (V4.6 FINAL EDITION)
 local hideUsnConnections = {} 
